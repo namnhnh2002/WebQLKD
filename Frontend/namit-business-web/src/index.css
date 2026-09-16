@@ -26,6 +26,10 @@ button { cursor: pointer; }
 .field-input { width: 100%; padding: 14px 15px; border: 1px solid #ccddd7; border-radius: 8px; outline: 0; background: #fbfdfc; color: #17343b; font-size: 14px; transition: border-color .2s,box-shadow .2s; }
 .field-input::placeholder { color: #9cafad; }
 .field-input:focus { border-color: #0f7775; box-shadow: 0 0 0 4px rgba(15,119,117,.11); }
+.password-field { position: relative; }
+.password-field .field-input { padding-right: 48px; }
+.password-toggle { position: absolute; top: 50%; right: 8px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #77918e; font-size: 19px; transform: translateY(-50%); }
+.password-toggle:hover, .password-toggle:focus-visible { background: #eaf4f0; color: #0f7775; outline: 0; }
 .primary-button { display: flex; align-items: center; justify-content: space-between; width: 100%; margin-top: 28px; padding: 15px 17px; border: 0; border-radius: 8px; background: #0f7775; color: #fff; font-weight: 700; box-shadow: 0 8px 16px rgba(15,119,117,.2); transition: transform .2s,background .2s; }
 .primary-button:hover { background: #0b6261; transform: translateY(-2px); }
 .primary-button:disabled { cursor: wait; opacity: .65; transform: none; }

@@ -7,6 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("admin");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +19,13 @@ export default function Login() {
       await login(email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message ?? "Đăng nhập thất bại.");
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+      setError(
+        status === 401
+          ? "Tài khoản hoặc mật khẩu chưa đúng."
+          : message ?? "Không thể kết nối máy chủ. Hãy kiểm tra API và PostgreSQL đang chạy."
+      );
     } finally {
       setLoading(false);
     }
@@ -67,15 +74,26 @@ export default function Login() {
         />
 
         <label className="field-label" htmlFor="password">Mật khẩu</label>
-        <input
-          id="password"
-          className="field-input"
-          type="password"
-          placeholder="Nhập mật khẩu của bạn"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        <div className="password-field">
+          <input
+            id="password"
+            className="field-input"
+            type={showPassword ? "text" : "password"}
+            placeholder="Nhập mật khẩu của bạn"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            className="password-toggle"
+            type="button"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+            title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+          >
+            {showPassword ? "◉" : "◌"}
+          </button>
+        </div>
 
         <button className="primary-button" type="submit" disabled={loading}>
           <span>{loading ? "Đang xác thực..." : "Đăng nhập hệ thống"}</span>
