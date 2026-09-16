@@ -1,0 +1,10 @@
+.git
+.vs
+.vscode
+**/bin
+**/obj
+**/logs
+Frontend/namit-business-web/node_modules
+Frontend/namit-business-web/dist
+*.user
+*.suo

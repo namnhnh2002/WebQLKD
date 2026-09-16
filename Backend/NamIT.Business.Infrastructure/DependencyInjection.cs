@@ -22,6 +22,14 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ICustomerService, CustomerService>();
+        services.AddScoped<ISupplierService, SupplierService>();
+        services.AddScoped<IInventoryService, InventoryService>();
+        services.AddScoped<IPosService, PosService>();
+        services.AddScoped<IHospitalityService, HospitalityService>();
+        services.AddScoped<IAdminOperationsService, AdminOperationsService>();
 
         return services;
     }

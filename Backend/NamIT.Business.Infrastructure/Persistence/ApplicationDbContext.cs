@@ -25,6 +25,26 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<BusinessType> BusinessTypes => Set<BusinessType>();
     public DbSet<TenantModule> TenantModules => Set<TenantModule>();
     public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<Customer> Customers => Set<Customer>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<OrderItemTopping> OrderItemToppings => Set<OrderItemTopping>();
+    public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<Debt> Debts => Set<Debt>();
+    public DbSet<DebtTransaction> DebtTransactions => Set<DebtTransaction>();
+    public DbSet<Receipt> Receipts => Set<Receipt>();
+    public DbSet<TableArea> TableAreas => Set<TableArea>();
+    public DbSet<DiningTable> Tables => Set<DiningTable>();
+    public DbSet<TableOrder> TableOrders => Set<TableOrder>();
+    public DbSet<Topping> Toppings => Set<Topping>();
+    public DbSet<Combo> Combos => Set<Combo>();
+    public DbSet<ComboItem> ComboItems => Set<ComboItem>();
+    public DbSet<KitchenOrder> KitchenOrders => Set<KitchenOrder>();
+    public DbSet<KitchenOrderItem> KitchenOrderItems => Set<KitchenOrderItem>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserBranch> UserBranches => Set<UserBranch>();
     public DbSet<Role> Roles => Set<Role>();
@@ -37,6 +57,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        modelBuilder.Entity<TableOrder>()
+            .HasIndex(item => item.TableId)
+            .HasFilter("\"IsActive\" = TRUE")
+            .IsUnique();
 
         // Áp dụng Global Query Filter tự động cho mọi entity implement ITenantEntity
         // (và kết hợp thêm điều kiện !IsDeleted nếu entity cũng implement ISoftDeletable).
@@ -96,5 +120,24 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
         }
 
         return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default)
+    {
+        if (!Database.IsRelational())
+            return await operation();
+
+        await using var transaction = await Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var result = await operation();
+            await transaction.CommitAsync(cancellationToken);
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }

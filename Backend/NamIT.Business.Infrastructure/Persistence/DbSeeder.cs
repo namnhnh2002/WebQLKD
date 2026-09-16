@@ -11,7 +11,10 @@ namespace NamIT.Business.Infrastructure.Persistence;
 /// </summary>
 public static class DbSeeder
 {
-    public static async Task SeedAsync(ApplicationDbContext db)
+    public static async Task SeedAsync(
+        ApplicationDbContext db,
+        bool enableDemoAdminFallback = false,
+        string? demoAdminPassword = null)
     {
         if (!await db.BusinessTypes.IgnoreQueryFilters().AnyAsync())
         {
@@ -40,8 +43,12 @@ public static class DbSeeder
             {
                 "PRODUCT_VIEW", "PRODUCT_CREATE", "PRODUCT_EDIT", "PRODUCT_DELETE",
                 "ORDER_VIEW", "ORDER_CREATE", "ORDER_EDIT", "ORDER_CANCEL",
+                "TABLE_VIEW", "TABLE_CREATE", "TABLE_UPDATE", "TABLE_TRANSFER", "TABLE_MERGE", "TABLE_SPLIT",
+                "KITCHEN_VIEW", "KITCHEN_UPDATE",
                 "INVENTORY_VIEW", "INVENTORY_ADJUST",
                 "CUSTOMER_VIEW", "CUSTOMER_CREATE", "CUSTOMER_EDIT",
+                "SUPPLIER_VIEW", "SUPPLIER_CREATE", "SUPPLIER_EDIT",
+                "PAYMENT_VIEW", "PAYMENT_CREATE", "DEBT_VIEW",
                 "REPORT_VIEW",
                 "USER_VIEW", "USER_CREATE", "USER_EDIT", "USER_DELETE",
                 "SETTINGS_VIEW", "SETTINGS_EDIT"
@@ -49,6 +56,20 @@ public static class DbSeeder
             db.Permissions.AddRange(permissionCodes.Select(c => new Permission { Code = c, Name = c, GroupName = c.Split('_')[0] }));
         }
 
+        await db.SaveChangesAsync();
+
+        var tenants = await db.Tenants.IgnoreQueryFilters().Include(t => t.BusinessType).ToListAsync();
+        foreach (var tenant in tenants)
+        {
+            var enabled = await db.TenantModules.IgnoreQueryFilters()
+                .Where(module => module.TenantId == tenant.Id)
+                .Select(module => module.ModuleCode)
+                .ToListAsync();
+            var defaults = ModuleCatalog.For(Enum.Parse<BusinessTypeCode>(tenant.BusinessType.Code, true));
+            db.TenantModules.AddRange(defaults
+                .Where(module => !enabled.Contains(module))
+                .Select(module => new TenantModule { TenantId = tenant.Id, ModuleCode = module, IsEnabled = true }));
+        }
         await db.SaveChangesAsync();
 
         // Gán toàn bộ permission cho TENANT_ADMIN nếu chưa có
@@ -64,10 +85,11 @@ public static class DbSeeder
             await db.SaveChangesAsync();
         }
 
-        await SeedAdminAsync(db, tenantAdminRole);
+        if (enableDemoAdminFallback && !string.IsNullOrWhiteSpace(demoAdminPassword))
+            await SeedAdminAsync(db, tenantAdminRole, demoAdminPassword);
     }
 
-    private static async Task SeedAdminAsync(ApplicationDbContext db, Role tenantAdminRole)
+    private static async Task SeedAdminAsync(ApplicationDbContext db, Role tenantAdminRole, string demoAdminPassword)
     {
         const string adminEmail = "admin@namit.local";
         if (await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == adminEmail))
@@ -96,7 +118,7 @@ public static class DbSeeder
             TenantId = tenant.Id,
             FullName = "NamIT Administrator",
             Email = adminEmail,
-            PasswordHash = new PasswordHasher().Hash("NamIT@2026"),
+            PasswordHash = new PasswordHasher().Hash(demoAdminPassword),
             Status = EntityStatus.Active
         };
         db.Users.Add(admin);

@@ -13,6 +13,26 @@ public interface IApplicationDbContext
     DbSet<BusinessType> BusinessTypes { get; }
     DbSet<TenantModule> TenantModules { get; }
     DbSet<Branch> Branches { get; }
+    DbSet<Category> Categories { get; }
+    DbSet<Product> Products { get; }
+    DbSet<Customer> Customers { get; }
+    DbSet<Supplier> Suppliers { get; }
+    DbSet<InventoryTransaction> InventoryTransactions { get; }
+    DbSet<Order> Orders { get; }
+    DbSet<OrderItem> OrderItems { get; }
+    DbSet<OrderItemTopping> OrderItemToppings { get; }
+    DbSet<Payment> Payments { get; }
+    DbSet<Debt> Debts { get; }
+    DbSet<DebtTransaction> DebtTransactions { get; }
+    DbSet<Receipt> Receipts { get; }
+    DbSet<TableArea> TableAreas { get; }
+    DbSet<DiningTable> Tables { get; }
+    DbSet<TableOrder> TableOrders { get; }
+    DbSet<Topping> Toppings { get; }
+    DbSet<Combo> Combos { get; }
+    DbSet<ComboItem> ComboItems { get; }
+    DbSet<KitchenOrder> KitchenOrders { get; }
+    DbSet<KitchenOrderItem> KitchenOrderItems { get; }
     DbSet<User> Users { get; }
     DbSet<UserBranch> UserBranches { get; }
     DbSet<Role> Roles { get; }
@@ -23,4 +43,5 @@ public interface IApplicationDbContext
     DbSet<AuditLog> AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default);
 }

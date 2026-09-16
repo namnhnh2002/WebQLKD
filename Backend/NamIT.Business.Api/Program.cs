@@ -10,6 +10,20 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var renderPort = Environment.GetEnvironmentVariable("PORT");
+if (int.TryParse(renderPort, out var port) && port > 0)
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var jwtSecret = builder.Configuration["Jwt:SecretKey"];
+if (builder.Environment.IsProduction())
+{
+    if (string.IsNullOrWhiteSpace(connectionString) || connectionString.Contains("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("ConnectionStrings__DefaultConnection must be supplied in production.");
+    if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.StartsWith("CHANGE_ME", StringComparison.OrdinalIgnoreCase))
+        throw new InvalidOperationException("Jwt__SecretKey must be supplied in production.");
+}
+
 // ---------- Serilog ----------
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -43,7 +57,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // ---------- JWT Authentication ----------
-var jwtSecret = builder.Configuration["Jwt:SecretKey"]!;
+var requiredJwtSecret = jwtSecret!;
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -59,14 +73,22 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(requiredJwtSecret)),
         ClockSkew = TimeSpan.FromSeconds(30)
     };
 });
 builder.Services.AddAuthorization();
 
 // ---------- CORS ----------
-var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+var configuredOrigins = builder.Environment.IsProduction()
+    ? Array.Empty<string>()
+    : builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
+var environmentOrigins = builder.Configuration["Cors:AllowedOriginsCsv"]?
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? Array.Empty<string>();
+var allowedOrigins = configuredOrigins.Concat(environmentOrigins).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+if (builder.Environment.IsProduction() && allowedOrigins.Length == 0)
+    throw new InvalidOperationException("Cors__AllowedOriginsCsv must be supplied in production.");
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Default", policy =>
@@ -89,19 +111,50 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue<bool>("UseHttpsRedirection"))
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors("Default");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+app.MapGet("/health/db", async (ApplicationDbContext db, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok(new { status = "ok" })
+            : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Database health check failed.");
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
+});
 
-// ---------- Migrate + Seed (Development only) ----------
-if (app.Environment.IsDevelopment())
+// ---------- Initialize + Seed ----------
+var initializeDatabase = builder.Environment.IsProduction()
+    || builder.Configuration.GetValue<bool>("Database:InitializeOnStartup");
+if (initializeDatabase)
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db);
+    try
+    {
+        await db.Database.MigrateAsync();
+        var enableDemoAdminFallback = !app.Environment.IsProduction()
+            && builder.Configuration.GetValue<bool>("Database:EnableDemoAdminFallback");
+        await DbSeeder.SeedAsync(db, enableDemoAdminFallback, builder.Configuration["Database:DemoAdminPassword"]);
+    }
+    catch (Exception ex)
+    {
+        if (app.Environment.IsProduction())
+            throw;
+        app.Logger.LogWarning(ex, "Database is unavailable. Local startup continues without database initialization.");
+    }
 }
 
 app.Run();

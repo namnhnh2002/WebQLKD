@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("admin");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export default function Login() {
       setError(
         status === 401
           ? "Tài khoản hoặc mật khẩu chưa đúng."
-          : message ?? "Không thể kết nối máy chủ. Hãy kiểm tra API và PostgreSQL đang chạy."
+          : message ?? "Đăng nhập chưa thành công. Vui lòng thử lại sau."
       );
     } finally {
       setLoading(false);
@@ -67,7 +67,7 @@ export default function Login() {
           id="account"
           className="field-input"
           type="text"
-          placeholder="admin"
+          placeholder="Nhập tài khoản hoặc email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -99,7 +99,6 @@ export default function Login() {
           <span>{loading ? "Đang xác thực..." : "Đăng nhập hệ thống"}</span>
           {!loading && <span aria-hidden="true">→</span>}
         </button>
-        <p className="login-hint">Tài khoản quản trị mặc định: <strong>admin</strong></p>
       </form>
     </main>
   );

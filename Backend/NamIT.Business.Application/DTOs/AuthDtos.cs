@@ -27,3 +27,10 @@ public record UserProfileDto(
     string TenantName,
     List<string> Roles,
     List<string> Permissions);
+
+public record TenantModuleContextDto(
+    Guid TenantId,
+    string TenantName,
+    string BusinessTypeCode,
+    List<string> EnabledModules,
+    List<string> Permissions);

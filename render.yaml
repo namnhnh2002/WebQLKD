@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: namit-business-api
+    runtime: docker
+    rootDir: .
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: namit-business-db
+          property: connectionStringInternal
+      - key: Jwt__SecretKey
+        sync: false
+      - key: Cors__AllowedOriginsCsv
+        sync: false
+
+  - type: web
+    name: namit-business-web
+    runtime: static
+    rootDir: Frontend/namit-business-web
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: namit-business-db
+    databaseName: namit_business
+    user: namit_business

@@ -1,0 +1,50 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start PostgreSQL for NamIT",
+			"type": "shell",
+			"command": "docker",
+			"args": [
+				"run",
+				"--name",
+				"namit-pg",
+				"-e",
+				"POSTGRES_PASSWORD=CHANGE_ME",
+				"-p",
+				"5432:5432",
+				"-d",
+				"postgres:16"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "postgres-start",
+			"type": "shell",
+			"command": "cmd.exe /c docker run --name namit-pg -e POSTGRES_PASSWORD=CHANGE_ME -p 5432:5432 -d postgres:16",
+			"args": [],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Start PostgreSQL for NamIT",
+			"type": "shell",
+			"command": "docker",
+			"args": [
+				"run",
+				"--name",
+				"namit-pg",
+				"-e",
+				"POSTGRES_PASSWORD=CHANGE_ME",
+				"-p",
+				"5432:5432",
+				"-d",
+				"postgres:16"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

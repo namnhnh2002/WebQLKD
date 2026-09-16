@@ -30,19 +30,27 @@ public enum BusinessTypeCode
 /// </summary>
 public enum ModuleCode
 {
-    POS,
-    PRODUCT,
-    INVENTORY,
-    CUSTOMER,
-    SUPPLIER,
-    TABLE,
-    KITCHEN,
-    TOPPING,
-    BILLIARD_TABLE,
-    PRODUCT_VARIANT,
-    REPORT,
-    EXPENSE,
-    APPOINTMENT
+    POS = 0,
+    PRODUCT = 1,
+    INVENTORY = 2,
+    CUSTOMER = 3,
+    SUPPLIER = 4,
+    TABLE = 5,
+    KITCHEN = 6,
+    TOPPING = 7,
+    BILLIARD_TABLE = 8,
+    PRODUCT_VARIANT = 9,
+    REPORT = 10,
+    EXPENSE = 11,
+    APPOINTMENT = 12,
+    PAYMENT = 13,
+    DEBT = 14,
+    COMBO = 15,
+    BILLIARD = 16,
+    TIME_PRICING = 17,
+    SIZE = 18,
+    COLOR = 19,
+    BARCODE = 20
 }
 
 public enum SystemRole
@@ -54,4 +62,52 @@ public enum SystemRole
     ACCOUNTANT,
     WAREHOUSE,
     CASHIER
+}
+
+public enum OrderStatus
+{
+    Draft = 1,
+    Completed = 2,
+    Cancelled = 3
+}
+
+public enum PaymentMethod
+{
+    CASH = 1,
+    CARD = 2,
+    TRANSFER = 3,
+    E_WALLET = 4,
+    DEBT = 5
+}
+
+public enum DebtStatus
+{
+    Open = 1,
+    PartiallyPaid = 2,
+    Paid = 3
+}
+
+public enum DiningTableStatus
+{
+    Available = 1,
+    Occupied = 2,
+    Reserved = 3,
+    Cleaning = 4,
+    Disabled = 5
+}
+
+public enum KitchenOrderStatus
+{
+    Pending = 1,
+    Preparing = 2,
+    Ready = 3,
+    Served = 4,
+    Cancelled = 5
+}
+
+public enum ProductStation
+{
+    None = 0,
+    Kitchen = 1,
+    Bar = 2
 }
