@@ -11,9 +11,7 @@ services:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
       - key: ConnectionStrings__DefaultConnection
-        fromDatabase:
-          name: namit-business-db
-          property: connectionString
+        sync: false
       - key: Jwt__SecretKey
         sync: false
       - key: Cors__AllowedOriginsCsv
@@ -33,7 +31,3 @@ services:
         source: /*
         destination: /index.html
 
-databases:
-  - name: namit-business-db
-    databaseName: namit_business
-    user: namit_business
