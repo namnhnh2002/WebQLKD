@@ -12,7 +12,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         fromDatabase:
           name: namit-business-db
-          property: connectionStringInternal
+          property: connectionString
       - key: Jwt__SecretKey
         sync: false
       - key: Cors__AllowedOriginsCsv
