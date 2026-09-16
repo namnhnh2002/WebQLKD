@@ -2,6 +2,7 @@ services:
   - type: web
     name: namit-business-api
     runtime: docker
+    plan: free
     rootDir: .
     dockerfilePath: ./Dockerfile
     dockerContext: .
