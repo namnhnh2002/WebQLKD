@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NamIT.Business.Domain.Entities;
 using NamIT.Business.Domain.Enums;
+using NamIT.Business.Infrastructure.Services;
 
 namespace NamIT.Business.Infrastructure.Persistence;
 
@@ -62,6 +63,46 @@ public static class DbSeeder
             }
             await db.SaveChangesAsync();
         }
+
+        await SeedAdminAsync(db, tenantAdminRole);
+    }
+
+    private static async Task SeedAdminAsync(ApplicationDbContext db, Role tenantAdminRole)
+    {
+        const string adminEmail = "admin@namit.local";
+        if (await db.Users.IgnoreQueryFilters().AnyAsync(u => u.Email == adminEmail))
+            return;
+
+        var businessType = await db.BusinessTypes.IgnoreQueryFilters()
+            .FirstAsync(b => b.Code == BusinessTypeCode.CAFE.ToString());
+        var tenant = await db.Tenants.IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Code == "NAMITADMIN");
+
+        if (tenant == null)
+        {
+            tenant = new Tenant
+            {
+                Name = "NamIT Demo Business",
+                Code = "NAMITADMIN",
+                BusinessTypeId = businessType.Id,
+                Status = EntityStatus.Active
+            };
+            db.Tenants.Add(tenant);
+            await db.SaveChangesAsync();
+        }
+
+        var admin = new User
+        {
+            TenantId = tenant.Id,
+            FullName = "NamIT Administrator",
+            Email = adminEmail,
+            PasswordHash = new PasswordHasher().Hash("NamIT@2026"),
+            Status = EntityStatus.Active
+        };
+        db.Users.Add(admin);
+        db.UserRoles.Add(new UserRole { UserId = admin.Id, RoleId = tenantAdminRole.Id });
+        db.Branches.Add(new Branch { TenantId = tenant.Id, Name = "Chi nhánh chính", Code = "MAIN", Status = EntityStatus.Active });
+        await db.SaveChangesAsync();
     }
 
     private static string GetBusinessTypeName(BusinessTypeCode code) => code switch

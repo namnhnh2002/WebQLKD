@@ -80,10 +80,14 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
+        var email = request.Email.Trim();
+        if (string.Equals(email, "admin", StringComparison.OrdinalIgnoreCase))
+            email = "admin@namit.local";
+
         var user = await _db.Users
             .Include(u => u.Tenant)
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role).ThenInclude(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
-            .FirstOrDefaultAsync(u => u.Email == request.Email && !u.IsDeleted);
+            .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
 
         if (user == null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Email hoặc mật khẩu không đúng.");

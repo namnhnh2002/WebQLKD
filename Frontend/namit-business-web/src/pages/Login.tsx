@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("admin");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,46 +25,64 @@ export default function Login() {
   };
 
   return (
-    <div style={styles.wrapper}>
-      <form style={styles.card} onSubmit={handleSubmit}>
-        <h1 style={styles.title}>NAM IT Business</h1>
-        <p style={styles.subtitle}>Đăng nhập vào hệ thống quản lý kinh doanh</p>
+    <main className="login-page">
+      <div className="login-glow login-glow-one" />
+      <div className="login-glow login-glow-two" />
+      <section className="login-showcase">
+        <div className="brand-mark">N</div>
+        <p className="eyebrow">NAM IT / BUSINESS OS</p>
+        <h1>Điều hành doanh nghiệp bằng một nhịp nhìn.</h1>
+        <p className="showcase-copy">
+          Một không gian tập trung cho vận hành, doanh thu và những quyết định quan trọng mỗi ngày.
+        </p>
+        <div className="showcase-stat">
+          <span className="status-dot" />
+          <span>Hệ thống sẵn sàng</span>
+          <strong>Phase 01</strong>
+        </div>
+      </section>
 
-        {error && <div style={styles.error}>{error}</div>}
+      <form className="login-card" onSubmit={handleSubmit}>
+        <div className="mobile-brand">
+          <div className="brand-mark small">N</div>
+          <span>NAM IT Business</span>
+        </div>
+        <div className="form-heading">
+          <p className="eyebrow">WELCOME BACK</p>
+          <h2>Chào mừng trở lại</h2>
+          <p>Đăng nhập để tiếp tục quản lý hoạt động kinh doanh.</p>
+        </div>
 
-        <label style={styles.label}>Email</label>
+        {error && <div className="login-error" role="alert">{error}</div>}
+
+        <label className="field-label" htmlFor="account">Tài khoản</label>
         <input
-          style={styles.input}
-          type="email"
+          id="account"
+          className="field-input"
+          type="text"
+          placeholder="admin"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
 
-        <label style={styles.label}>Mật khẩu</label>
+        <label className="field-label" htmlFor="password">Mật khẩu</label>
         <input
-          style={styles.input}
+          id="password"
+          className="field-input"
           type="password"
+          placeholder="Nhập mật khẩu của bạn"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        <button style={styles.button} type="submit" disabled={loading}>
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+        <button className="primary-button" type="submit" disabled={loading}>
+          <span>{loading ? "Đang xác thực..." : "Đăng nhập hệ thống"}</span>
+          {!loading && <span aria-hidden="true">→</span>}
         </button>
+        <p className="login-hint">Tài khoản quản trị mặc định: <strong>admin</strong></p>
       </form>
-    </div>
+    </main>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  wrapper: { display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" },
-  card: { background: "#fff", padding: 32, borderRadius: 12, boxShadow: "0 4px 20px rgba(0,0,0,0.08)", width: 360 },
-  title: { margin: 0, fontSize: 22 },
-  subtitle: { color: "#6b7280", marginTop: 4, marginBottom: 24, fontSize: 14 },
-  label: { display: "block", fontSize: 13, marginBottom: 6, marginTop: 12, color: "#374151" },
-  input: { width: "100%", padding: "10px 12px", borderRadius: 8, border: "1px solid #d1d5db", fontSize: 14 },
-  button: { width: "100%", marginTop: 20, padding: "10px 12px", borderRadius: 8, border: "none", background: "#2563eb", color: "#fff", fontWeight: 600, cursor: "pointer" },
-  error: { background: "#fee2e2", color: "#b91c1c", padding: "8px 12px", borderRadius: 8, fontSize: 13, marginBottom: 8 }
-};
